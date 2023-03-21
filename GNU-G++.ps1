@@ -43,7 +43,7 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" )
     Invoke-Expression "g++ -E -P $File.cpp -o $File.Preprocessing.cpp"
     if ( Test-Path "$File.Preprocessing.Hash" ) 
       {
-        if ( $( Get-FileHash "$File.Preprocessing.cpp" -Algorithm SHA256 ).Hash.ToString() -eq $( Get-Content "$File.Preprocessing.Hash" -Raw) )
+        if (( $( Get-FileHash "$File.Preprocessing.cpp" -Algorithm SHA256 ).Hash.ToString() -eq $( Get-Content "$File.Preprocessing.Hash" -Raw) ) -or ( Test-Path "$File.exe" ))
           {
             Write-Host "  State: file unchanged" ;
             $FileChanged = $False ;
