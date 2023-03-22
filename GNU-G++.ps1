@@ -29,10 +29,23 @@ Write-Host "  File: $File.cpp" ;
 Write-Host "  Folder: $Folder" ;
 Write-Host "" ;
 
+# Pre-Compilation Processing
+if ( $Action -eq "build" -or $Action -eq "test-flush" )
+  {
+    Write-Host "Action: Pre-Compilation Processing";
+    Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
+    Write-Host "  File: $File.cpp" ; 
+    if ( Test-Path "$File.exe" )
+      {
+        Write-Host "  Statue: Remove File: '$File.exe'" ; 
+        Remove-Item "$File.exe" ;
+      }
+    Write-Host "" ; 
+  }
 
 # Use: "$File.Compile.Options.txt"
 # Generate: "$File.Preprocessing.cpp", "$File.Compile.Command.ps1"
-if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" )
+if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $Action -eq "test-flush" )
   {
     Write-Host "Action: Compile";
     Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
@@ -79,7 +92,7 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" )
 
 # Use: "$File.Execute.Argument.txt", "$File.Execute.Input.txt", "$File.Execute.Output.txt", "$File.Execute.OutputHistory.txt"
 # Generate: "$File.Preprocessing.cpp", "$File.Compile.Command.ps1"
-if ( $Action -eq "test" )
+if ( $Action -eq "test" -or $Action -eq "test-flush" )
   {
     Write-Host "Action: Execute";
     Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
@@ -107,3 +120,17 @@ if ( $Action -eq "test" )
       }
     Write-Host "" ; 
   }
+  
+# Post-Processing
+if ( $Action -eq "test-flush" )
+{
+  Write-Host "Action: Post-Processing";
+  Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
+  Write-Host "  File: $File.cpp" ; 
+  if ( Test-Path "$File.exe" )
+    {
+      Write-Host "  Statue: Remove File: '$File.exe'" ; 
+      Remove-Item "$File.exe" ;
+    }
+  Write-Host "" ; 
+}
