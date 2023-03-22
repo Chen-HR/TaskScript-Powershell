@@ -10,7 +10,7 @@ if ( -not $Folder ) { $Folder = "." }
 
 $File = $Folder + "/" + $FileBasenameNoExtension
 
-if ( $Action -eq "" -or ( $Action -ne "build" -and $Action -ne "compile" -and $Action -ne "test" )) 
+if ( $Action -eq "" -or ( $Action -ne "build" -and $Action -ne "compile" -and $Action -ne "test"  -and $Action -ne "test-flush" )) 
   { 
     Write-Error "Error: no action to perform" ;
     Exit 1 ;
