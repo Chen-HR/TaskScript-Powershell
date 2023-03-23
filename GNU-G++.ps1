@@ -73,6 +73,12 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
       }
     if ( $FileChanged ) 
       {
+        # Remove Execute File
+        if ( Test-Path "$File.exe" )
+          {
+            Write-Host "  Statue: Remove File: '$File.exe'" ; 
+            Remove-Item "$File.exe" ;
+          }
         # Create file hash value
         Write-Host "  State: Create file hash" ;
         $( Get-FileHash "$File.Preprocessing.cpp" -Algorithm SHA256 ).Hash | Out-File -FilePath "$File.Preprocessing.Hash" -NoNewline ;
