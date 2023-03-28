@@ -10,7 +10,7 @@ if ( -not $Folder ) { $Folder = "." }
 
 $File = $Folder + "/" + $FileBasenameNoExtension
 
-if ( $Action -eq "" -or ( $Action -ne "build" -and $Action -ne "compile" -and $Action -ne "test"  -and $Action -ne "test-flush" )) 
+if ( $Action -eq "" -or ( $Action -ne "preprocess" -and $Action -ne "build" -and $Action -ne "compile" -and $Action -ne "test"  -and $Action -ne "test-flush" )) 
   { 
     Write-Error "Error: no action to perform" ;
     Exit 1 ;
@@ -20,7 +20,6 @@ if ( $FileBasenameNoExtension -eq "" )
     Write-Error "Error: no files to process" ;
     Exit 1 ;
   }
-# if ( $Folder -eq "" ) { Break; }
 
 Write-Host "Running Information: " ;
 Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ; ;
@@ -43,8 +42,21 @@ if ( $Action -eq "build" -or $Action -eq "test-flush" )
     Write-Host "" ; 
   }
 
+# Expand Preprocess
+if ( $Action -eq "preprocess")
+  {
+    Write-Host "Action: Expand Preprocess";
+    Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
+    Write-Host "  File: $File.cpp" ; 
+    Write-Host "  Statue: Generate File: '$File.Preprocess.cpp'" ;
+    $Command = "g++ -E -P $File.cpp -o $File.Preprocess.cpp"
+    Write-Host "  Command: $Command" ;
+    Invoke-Expression $Command ;
+    Write-Host "" ; 
+  }
+
 # Use: "$File.Compile.Options.txt"
-# Generate: "$File.Preprocessing.cpp", "$File.Compile.Command.ps1"
+# Generate: "$File.Preprocess.cpp", "$File.Compile.Command.ps1"
 if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $Action -eq "test-flush" )
   {
     Write-Host "Action: Compile";
@@ -53,10 +65,10 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
     # Write-Host "" ; 
     # Check File is changed
     $FileChanged = $True ;
-    Invoke-Expression "g++ -E -P $File.cpp -o $File.Preprocessing.cpp"
-    if ( Test-Path "$File.Preprocessing.Hash" ) 
+    Invoke-Expression "g++ -E -P $File.cpp -o $File.Preprocess.cpp";
+    if ( Test-Path "$File.Preprocess.Hash" ) 
       {
-        if (( $( Get-FileHash "$File.Preprocessing.cpp" -Algorithm SHA256 ).Hash.ToString() -eq $( Get-Content "$File.Preprocessing.Hash" -Raw) ) -and ( Test-Path "$File.exe" ))
+        if (( $( Get-FileHash "$File.Preprocess.cpp" -Algorithm SHA256 ).Hash.ToString() -eq $( Get-Content "$File.Preprocess.Hash" -Raw) ) -and ( Test-Path "$File.exe" ))
           {
             Write-Host "  State: file unchanged" ;
             $FileChanged = $False ;
@@ -81,7 +93,7 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
           }
         # Create file hash value
         Write-Host "  State: Create file hash" ;
-        $( Get-FileHash "$File.Preprocessing.cpp" -Algorithm SHA256 ).Hash | Out-File -FilePath "$File.Preprocessing.Hash" -NoNewline ;
+        $( Get-FileHash "$File.Preprocess.cpp" -Algorithm SHA256 ).Hash | Out-File -FilePath "$File.Preprocess.Hash" -NoNewline ;
         # Build compile command
         $Command = "g++ $File.cpp -o $File.exe" ;
         if ( Test-Path "$File.Compile.Options.txt") 
@@ -97,7 +109,7 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
   }
 
 # Use: "$File.Execute.Argument.txt", "$File.Execute.Input.txt", "$File.Execute.Output.txt", "$File.Execute.OutputHistory.txt"
-# Generate: "$File.Preprocessing.cpp", "$File.Compile.Command.ps1"
+# Generate: "$File.Preprocess.cpp", "$File.Compile.Command.ps1"
 if ( $Action -eq "test" -or $Action -eq "test-flush" )
   {
     Write-Host "Action: Execute";
