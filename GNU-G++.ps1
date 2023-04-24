@@ -28,16 +28,32 @@ Write-Host "  File: $File.cpp" ;
 Write-Host "  Folder: $Folder" ;
 Write-Host "" ;
 
+if (!(Test-Path "$File/")) 
+  {
+    New-Item -ItemType Directory -Path "$File/"
+    Write-Host "  Folder created: $File/"
+  } 
+if (!(Test-Path "$File/Compile/")) 
+  {
+    New-Item -ItemType Directory -Path "$File/Compile/"
+    Write-Host "  Folder created: $File/Compile/"
+  } 
+if (!(Test-Path "$File/Execute/")) 
+  {
+    New-Item -ItemType Directory -Path "$File/Execute/"
+    Write-Host "  Folder created: $File/Execute/"
+  } 
+
 # Pre-Compilation Processing
 if ( $Action -eq "build" -or $Action -eq "test-flush" )
   {
     Write-Host "Action: Pre-Compilation Processing";
     Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
     Write-Host "  File: $File.cpp" ; 
-    if ( Test-Path "$File.exe" )
+    if ( Test-Path "$File/$FileBasenameNoExtension.exe" )
       {
-        Write-Host "  Statue: Remove File: '$File.exe'" ; 
-        Remove-Item "$File.exe" ;
+        Write-Host "  Statue: Remove File: '$File/$FileBasenameNoExtension.exe'" ; 
+        Remove-Item "$File/$FileBasenameNoExtension.exe" ;
       }
     Write-Host "" ; 
   }
@@ -68,7 +84,7 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
     Invoke-Expression "g++ -E -P $File.cpp -o $File/Preprocess.cpp";
     if ( Test-Path "$File/Preprocess.Hash" ) 
       {
-        if (( $( Get-FileHash "$File/Preprocess.cpp" -Algorithm SHA256 ).Hash.ToString() -eq $( Get-Content "$File/Preprocess.Hash" -Raw) ) -and ( Test-Path "$File.exe" ))
+        if (( $( Get-FileHash "$File/Preprocess.cpp" -Algorithm SHA256 ).Hash.ToString() -eq $( Get-Content "$File/Preprocess.Hash" -Raw) ) -and ( Test-Path "$File/$FileBasenameNoExtension.exe" ))
           {
             Write-Host "  State: file unchanged" ;
             $FileChanged = $False ;
@@ -78,7 +94,7 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
             Write-Host "  State: file changed" ;
           }
       }
-    if ( -not (Test-Path "$File.exe") )
+    if ( -not (Test-Path "$File/$FileBasenameNoExtension.exe") )
       {
         Write-Host "  State: executable file does not exist" ;
         $FileChanged = $True ;
@@ -86,16 +102,16 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
     if ( $FileChanged ) 
       {
         # Remove Execute File
-        if ( Test-Path "$File.exe" )
+        if ( Test-Path "$File/$FileBasenameNoExtension.exe" )
           {
-            Write-Host "  Statue: Remove File: '$File.exe'" ; 
-            Remove-Item "$File.exe" ;
+            Write-Host "  Statue: Remove File: '$File/$FileBasenameNoExtension.exe'" ; 
+            Remove-Item "$File/$FileBasenameNoExtension.exe" ;
           }
         # Create file hash value
         Write-Host "  State: Create file hash" ;
         $( Get-FileHash "$File/Preprocess.cpp" -Algorithm SHA256 ).Hash | Out-File -FilePath "$File/Preprocess.Hash" -NoNewline ;
         # Build compile command
-        $Command = "g++ $File.cpp -o $File.exe" ;
+        $Command = "g++ $File.cpp -o $File/$FileBasenameNoExtension.exe" ;
         if ( Test-Path "$File/Compile/Options.txt") 
           {
             $Command += " " + $( Get-Content "$File/Compile/Options.txt" -Raw)
@@ -114,8 +130,8 @@ if ( $Action -eq "test" -or $Action -eq "test-flush" )
   {
     Write-Host "Action: Execute";
     Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
-    Write-Host "  File: $File.exe" ; 
-    $Command = "$File.exe" ;
+    Write-Host "  File: $File/$FileBasenameNoExtension.exe" ; 
+    $Command = "$File/$FileBasenameNoExtension.exe" ;
     if ( Test-Path $Command )
       {
         if ( Test-Path "$File/Execute/Argument.txt" ) { $Command += " " + $( Get-Content "$File/Execute/Argument.txt" -Raw) }
@@ -145,10 +161,10 @@ if ( $Action -eq "test-flush" )
   Write-Host "Action: Post-Processing";
   Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
   Write-Host "  File: $File.cpp" ; 
-  if ( Test-Path "$File.exe" )
+  if ( Test-Path "$File/$FileBasenameNoExtension.exe" )
     {
-      Write-Host "  Statue: Remove File: '$File.exe'" ; 
-      Remove-Item "$File.exe" ;
+      Write-Host "  Statue: Remove File: '$File/$FileBasenameNoExtension.exe'" ; 
+      Remove-Item "$File/$FileBasenameNoExtension.exe" ;
     }
   Write-Host "" ; 
 }
