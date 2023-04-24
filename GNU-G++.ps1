@@ -48,15 +48,15 @@ if ( $Action -eq "preprocess")
     Write-Host "Action: Expand Preprocess";
     Write-Host "  Time: $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" ;
     Write-Host "  File: $File.cpp" ; 
-    Write-Host "  Statue: Generate File: '$File.Preprocess.cpp'" ;
-    $Command = "g++ -E -P $File.cpp -o $File.Preprocess.cpp"
+    Write-Host "  Statue: Generate File: '$File/Preprocess.cpp'" ;
+    $Command = "g++ -E -P $File.cpp -o $File/Preprocess.cpp"
     Write-Host "  Command: $Command" ;
     Invoke-Expression $Command ;
     Write-Host "" ; 
   }
 
-# Use: "$File.Compile.Options.txt"
-# Generate: "$File.Preprocess.cpp", "$File.Compile.Command.ps1"
+# Use: "$File/Compile/Options.txt"
+# Generate: "$File/Preprocess.cpp", "$File/Compile/Command.ps1"
 if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $Action -eq "test-flush" )
   {
     Write-Host "Action: Compile";
@@ -65,10 +65,10 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
     # Write-Host "" ; 
     # Check File is changed
     $FileChanged = $True ;
-    Invoke-Expression "g++ -E -P $File.cpp -o $File.Preprocess.cpp";
-    if ( Test-Path "$File.Preprocess.Hash" ) 
+    Invoke-Expression "g++ -E -P $File.cpp -o $File/Preprocess.cpp";
+    if ( Test-Path "$File/Preprocess.Hash" ) 
       {
-        if (( $( Get-FileHash "$File.Preprocess.cpp" -Algorithm SHA256 ).Hash.ToString() -eq $( Get-Content "$File.Preprocess.Hash" -Raw) ) -and ( Test-Path "$File.exe" ))
+        if (( $( Get-FileHash "$File/Preprocess.cpp" -Algorithm SHA256 ).Hash.ToString() -eq $( Get-Content "$File/Preprocess.Hash" -Raw) ) -and ( Test-Path "$File.exe" ))
           {
             Write-Host "  State: file unchanged" ;
             $FileChanged = $False ;
@@ -93,23 +93,23 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
           }
         # Create file hash value
         Write-Host "  State: Create file hash" ;
-        $( Get-FileHash "$File.Preprocess.cpp" -Algorithm SHA256 ).Hash | Out-File -FilePath "$File.Preprocess.Hash" -NoNewline ;
+        $( Get-FileHash "$File/Preprocess.cpp" -Algorithm SHA256 ).Hash | Out-File -FilePath "$File/Preprocess.Hash" -NoNewline ;
         # Build compile command
         $Command = "g++ $File.cpp -o $File.exe" ;
-        if ( Test-Path "$File.Compile.Options.txt") 
+        if ( Test-Path "$File/Compile/Options.txt") 
           {
-            $Command += " " + $( Get-Content "$File.Compile.Options.txt" -Raw)
+            $Command += " " + $( Get-Content "$File/Compile/Options.txt" -Raw)
           }
-        "# Create this file and run at $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" | Out-File -FilePath "$File.Compile.Command.ps1" ; 
-        "$Command ;" | Out-File -FilePath "$File.Compile.Command.ps1" -Append -NoNewline ;
+        "# Create this file and run at $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" | Out-File -FilePath "$File/Compile/Command.ps1" ; 
+        "$Command ;" | Out-File -FilePath "$File/Compile/Command.ps1" -Append -NoNewline ;
         Write-Host "  Command: $Command" ;
         Invoke-Expression $Command
       }
     Write-Host "" ; 
   }
 
-# Use: "$File.Execute.Argument.txt", "$File.Execute.Input.txt", "$File.Execute.Output.txt", "$File.Execute.OutputHistory.txt"
-# Generate: "$File.Preprocess.cpp", "$File.Compile.Command.ps1"
+# Use: "$File/Execute/Argument.txt", "$File/Execute/Input.txt", "$File/Execute/Output.txt", "$File/Execute/OutputHistory.txt"
+# Generate: "$File/Preprocess.cpp", "$File/Compile/Command.ps1"
 if ( $Action -eq "test" -or $Action -eq "test-flush" )
   {
     Write-Host "Action: Execute";
@@ -118,18 +118,18 @@ if ( $Action -eq "test" -or $Action -eq "test-flush" )
     $Command = "$File.exe" ;
     if ( Test-Path $Command )
       {
-        if ( Test-Path "$File.Execute.Argument.txt" ) { $Command += " " + $( Get-Content "$File.Execute.Argument.txt" -Raw) }
-        if ( Test-Path "$File.Execute.Input.txt" ) { $Command = "Get-Content $File.Execute.Input.txt -Raw" + " | " + $Command }
-        if ( Test-Path "$File.Execute.Output.txt" ) { $Command += " > " + "$File.Execute.Output.txt" }
-        "# Create this file and run at $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" | Out-File -FilePath "$File.Execute.Command.ps1" ; 
-        "$Command ;" | Out-File -FilePath "$File.Execute.Command.ps1" -Append -NoNewline ;
+        if ( Test-Path "$File/Execute/Argument.txt" ) { $Command += " " + $( Get-Content "$File/Execute/Argument.txt" -Raw) }
+        if ( Test-Path "$File/Execute/Input.txt" ) { $Command = "Get-Content $File/Execute/Input.txt -Raw" + " | " + $Command }
+        if ( Test-Path "$File/Execute/Output.txt" ) { $Command += " > " + "$File/Execute/Output.txt" }
+        "# Create this file and run at $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" | Out-File -FilePath "$File/Execute/Command.ps1" ; 
+        "$Command ;" | Out-File -FilePath "$File/Execute/Command.ps1" -Append -NoNewline ;
         Write-Host "  Command: $Command" ; 
         Write-Host "" ; 
         Invoke-Expression $Command ;
-        if ( Test-Path "$File.Execute.OutputHistory.txt" ) 
+        if ( Test-Path "$File/Execute/OutputHistory.txt" ) 
           { 
-            "$ Run at $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" | Out-File -FilePath "$File.Execute.OutputHistory.txt" -Append ; 
-            $( Get-Content "$File.Execute.Output.txt" -Raw) | Out-File -FilePath "$File.Execute.OutputHistory.txt" -Append ; 
+            "$ Run at $(Get-Date -Format 'yyyy/MM/dd(K)HH:mm:ss.ffff')" | Out-File -FilePath "$File/Execute/OutputHistory.txt" -Append ; 
+            $( Get-Content "$File/Execute/Output.txt" -Raw) | Out-File -FilePath "$File/Execute/OutputHistory.txt" -Append ; 
           }
       }
     else 
