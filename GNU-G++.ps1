@@ -38,10 +38,20 @@ if (!(Test-Path "$File/Compile/"))
     New-Item -ItemType Directory -Path "$File/Compile/"
     Write-Host "  Folder created: $File/Compile/"
   } 
+if (!(Test-Path "$File/Compile/Options.txt")) 
+  {
+    New-Item -ItemType File -Path "$File/Compile/Options.txt"
+    Write-Host "  Folder created: $File/Compile/Options.txt"
+  } 
 if (!(Test-Path "$File/Execute/")) 
   {
     New-Item -ItemType Directory -Path "$File/Execute/"
     Write-Host "  Folder created: $File/Execute/"
+  } 
+if (!(Test-Path "$File/Execute/Argument.txt")) 
+  {
+    New-Item -ItemType File -Path "$File/Execute/Argument.txt"
+    Write-Host "  Folder created: $File/Execute/Argument.txt"
   } 
 
 # Pre-Compilation Processing
