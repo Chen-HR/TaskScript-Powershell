@@ -48,7 +48,7 @@ if ( $Action -eq "help" -or $Action -eq "usage" )
 if ( $Action -eq "information" -or $Action -eq "source" -or $Action -eq "target" -or $Action -eq "sourceTarget" -or $Action -eq "map" -or $Action -eq "key-value" -or $Action -eq "kv")
   {
     $Information = $args[2]
-    Write-Host $($prefix_ + "Information: " + $Information)
+    if ( $Information -ne "" ) { Write-Host $($prefix_ + "Information: " + $Information) }
   }
 if ( $Action -eq "source" -or $Action -eq "sourceTarget" )
   {
