@@ -105,6 +105,7 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
         else 
           {
             Write-Host $($Prefix + "State: file changed") ;
+            $FileChanged = $True ;
           }
       }
     if ( -not (Test-Path "$File/$FileBasenameNoExtension.exe") )

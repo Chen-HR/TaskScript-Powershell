@@ -1,5 +1,5 @@
-# usage: Base64-Coder Encode-File ${Source}
-# usage: Base64-Coder Decode-File ${Source}
+# usage: Coder-Base64 Encode-File ${Source}
+# usage: Coder-Base64 Decode-File ${Source}
 $ActionList = @("encode-file", "decode-file")
 
 $Action = $args[0]
