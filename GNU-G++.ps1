@@ -134,6 +134,15 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
         "$Command ;" | Out-File -FilePath "$File/Compile/Command.ps1" -Append -NoNewline ;
         Write-Host $($Prefix + "Command: $Command") ;
         Invoke-Expression $Command
+        if ( Test-Path "$File/$FileBasenameNoExtension.exe") 
+          {
+            Write-Host $($Prefix + "State: compile successfully") ;
+          }
+        else
+          {
+            Write-Error "Error: compile failed" ;
+            Exit 1 ;
+          }
       }
     Write-Host "" ; 
   }
