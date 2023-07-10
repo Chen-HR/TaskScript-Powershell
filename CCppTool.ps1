@@ -1,19 +1,26 @@
 # Note: FileExtension: ".cpp"
-# Usage: GNU-G++.ps1 {Action} {FileBasenameNoExtension} {Folder}
+# Usage: GNU-G++.ps1 {Compiler} {Action} {FileBasenameNoExtension} {Folder}
 $ActionList = @("preprocess", "build", "compile", "test", "test-flush")
 $Prefix = "  - "
 $TimeFormat = "yyyy/MM/dd(K)HH:mm:ss.ffff"
 
-$Action = $args[0] ;
-$FileBasenameNoExtension = $args[1] ;
-$Folder = $args[2] ;
+$Compiler = $args[0] ;
+$Action = $args[1] ;
+$FileBasenameNoExtension = $args[2] ;
+$Folder = $args[3] ;
 
+if ( $Compiler ) { $Compiler = $Compiler } else { $Compiler = "" }
 if ( $Action ) { $Action = $Action.ToLower() } else { $Action = "" }
 if ( -not $FileBasenameNoExtension ) { $FileBasenameNoExtension = "" }
 if ( -not $Folder ) { $Folder = "." }
 
 $File = $Folder + "/" + $FileBasenameNoExtension
 
+if ( $Compiler -eq "" -or ( $Compiler.IndexOf($Action) -eq -1 )) 
+  { 
+    Write-Error "Error: no compiler to perform" ;
+    Exit 1 ;
+  }
 if ( $Action -eq "" -or ( $ActionList.IndexOf($Action) -eq -1 )) 
   { 
     Write-Error "Error: no action to perform" ;
@@ -78,7 +85,7 @@ if ( $Action -eq "preprocess" -or $Action -eq "build" -or $Action -eq "compile" 
     Write-Host $($Prefix + "Time: $(Get-Date -Format $TimeFormat)") ;
     Write-Host $($Prefix + "File: $File.cpp") ; 
     Write-Host $($Prefix + "Statue: Generate File: '$File/Preprocess.cpp'") ;
-    $Command = "g++ -E -P $File.cpp -o $File/Preprocess.cpp"
+    $Command = "$Compiler -E -P $File.cpp -o $File/Preprocess.cpp"
     if ( Test-Path "$File/Compile/Options.txt") 
       {
         $Command += " " + $( Get-Content "$File/Compile/Options.txt" -Raw)
@@ -125,7 +132,7 @@ if ( $Action -eq "build" -or $Action -eq "compile" -or $Action -eq "test" -or $A
         Write-Host $($Prefix + "State: Create file hash") ;
         $( Get-FileHash "$File/Preprocess.cpp" -Algorithm SHA256 ).Hash | Out-File -FilePath "$File/Preprocess.Hash" -NoNewline ;
         # Build compile command
-        $Command = "g++ $File.cpp -o $File/$FileBasenameNoExtension.exe" ;
+        $Command = "$Compiler $File.cpp -o $File/$FileBasenameNoExtension.exe" ;
         if ( Test-Path "$File/Compile/Options.txt") 
           {
             $Command += " " + $( Get-Content "$File/Compile/Options.txt" -Raw)
